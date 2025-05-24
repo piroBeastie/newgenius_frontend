@@ -1,8 +1,13 @@
-const API_BASE_URL = 'http://localhost:5000/api';
+// Get base URL from environment variable or fallback to localhost
+const API_BASE_URL = import.meta.env.VITE_PUBLIC_URL || 'http://localhost:8080';
+const API_ENDPOINT = '/api';
 
 class ApiService {
   constructor() {
-    this.baseURL = API_BASE_URL;
+    // Ensure API_BASE_URL ends without a trailing slash
+    const baseURL = API_BASE_URL.endsWith('/') ? API_BASE_URL.slice(0, -1) : API_BASE_URL;
+    this.baseURL = `${baseURL}${API_ENDPOINT}`;
+    console.log(`API service initialized with base URL: ${this.baseURL}`);
   }
 
   async request(endpoint, options = {}) {

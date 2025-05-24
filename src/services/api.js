@@ -1,24 +1,26 @@
 // Get base URL from environment variable or fallback to localhost
-const API_BASE_URL = import.meta.env.VITE_PUBLIC_URL || 'http://localhost:8080';
-const API_ENDPOINT = '/api';
+const API_BASE_URL = import.meta.env.VITE_PUBLIC_URL || 'http://localhost:5000';
 
 class ApiService {
   constructor() {
-    // Ensure API_BASE_URL ends without a trailing slash
-    const baseURL = API_BASE_URL.endsWith('/') ? API_BASE_URL.slice(0, -1) : API_BASE_URL;
-    this.baseURL = `${baseURL}${API_ENDPOINT}`;
+    // Ensure API_BASE_URL ends without a trailing slash before adding /api
+    this.baseURL = `${API_BASE_URL.replace(/\/$/, '')}/api`;
     console.log(`API service initialized with base URL: ${this.baseURL}`);
   }
 
   async request(endpoint, options = {}) {
     const url = `${this.baseURL}${endpoint}`;
+    
+    // Enhanced headers for CORS
     const config = {
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
+        'Origin': window.location.origin,
         ...options.headers,
       },
       credentials: 'include', // Important for CORS with credentials
+      mode: 'cors',          // Explicitly request CORS mode
       ...options,
     };
 

@@ -3,6 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { gsap } from 'gsap';
 import { useAuth } from '../context/AuthContext';
 import ApiService from '../services/api';
+import LoadingSpinner from '../components/LoadingSpinner'; // Import your LoadingSpinner
 import { 
   FaTimes, 
   FaExternalLinkAlt, 
@@ -84,13 +85,16 @@ function NewsResultsPage({ searchHistory, onSearch, onDeletePage, userCategories
     }
   }, [query]);
 
+  // Check if current category is generating
+  const currentCategory = userCategories.find(cat => cat.prompt === query);
+  const isCategoryGenerating = currentCategory?.isGenerating || false;
+
   // GSAP optimization for following list
   useEffect(() => {
     if (followingListRef.current && searchHistory.length > 0) {
       const ctx = gsap.context(() => {
         const listItems = followingListRef.current.children;
         
-        // Animate list items with stagger
         gsap.fromTo(listItems, 
           { 
             opacity: 0, 
@@ -107,7 +111,6 @@ function NewsResultsPage({ searchHistory, onSearch, onDeletePage, userCategories
           }
         );
 
-        // Add hover animations for each item
         Array.from(listItems).forEach((item, index) => {
           const button = item.querySelector('.following-item-button');
           const deleteBtn = item.querySelector('.delete-button');
@@ -155,7 +158,7 @@ function NewsResultsPage({ searchHistory, onSearch, onDeletePage, userCategories
 
       }, followingListRef);
 
-      return () => ctx.revert(); // Cleanup
+      return () => ctx.revert();
     }
   }, [searchHistory]);
 
@@ -177,7 +180,7 @@ function NewsResultsPage({ searchHistory, onSearch, onDeletePage, userCategories
         );
       }, gridRef);
 
-      return () => ctx.revert(); // Cleanup
+      return () => ctx.revert();
     }
   }, [newsItems]);
 
@@ -226,20 +229,23 @@ function NewsResultsPage({ searchHistory, onSearch, onDeletePage, userCategories
     setShowAddModal(false);
   };
 
+  // Show full-screen loader when generating news for current category
+  if (isCategoryGenerating && newsItems.length === 0) {
+    return <LoadingSpinner message="AI is generating personalized news articles..." />;
+  }
+
   return (
     <div className="min-h-screen bg-gray-100">
       {/* Enhanced Navbar */}
       <nav className="bg-white border-b border-gray-200 sticky top-0 z-40 shadow-sm">
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex items-center justify-between h-16">
-            {/* Logo Section - Left */}
             <div className="flex items-center">
               <div className="font-bold text-2xl text-gray-900 cursor-pointer hover:text-blue-600 transition-colors duration-200">
                 News<span className="text-blue-600">Genius</span>
               </div>
             </div>
             
-            {/* Home Button - Right */}
             <div className="flex items-center">
               <button 
                 onClick={() => navigate('/')} 
@@ -390,7 +396,7 @@ function NewsResultsPage({ searchHistory, onSearch, onDeletePage, userCategories
 
           <div ref={rightSideRef} className="flex-1 overflow-y-auto bg-gray-50">
             <div className="p-6">
-              {/* Generation Loading State */}
+              {/* Generation Loading State - Only show if generating new articles */}
               {isGeneratingNews && (
                 <div className="text-center py-20">
                   <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6 animate-pulse">
@@ -406,16 +412,16 @@ function NewsResultsPage({ searchHistory, onSearch, onDeletePage, userCategories
                 </div>
               )}
               
-              {/* Regular Loading State */}
-              {!isGeneratingNews && isLoadingNews && (
+              {/* Regular Loading State - Only show if loading existing articles */}
+              {!isGeneratingNews && !isCategoryGenerating && isLoadingNews && (
                 <div className="text-center py-20">
                   <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
                   <p className="text-gray-600">Loading articles...</p>
                 </div>
               )}
               
-              {/* Enhanced Vertical Articles Display*/}
-              {!isGeneratingNews && !isLoadingNews && newsItems.length > 0 && (
+              {/* Enhanced Vertical Articles Display */}
+              {!isGeneratingNews && !isCategoryGenerating && !isLoadingNews && newsItems.length > 0 && (
                 <div ref={gridRef} className="max-w-3xl mx-auto space-y-8">
                   {newsItems.map((item, index) => (
                     <div key={item.id || index} className="gsap-fade-in">
@@ -483,8 +489,8 @@ function NewsResultsPage({ searchHistory, onSearch, onDeletePage, userCategories
                 </div>
               )}
               
-              {/* No Articles State */}
-              {!isGeneratingNews && !isLoadingNews && newsItems.length === 0 && query && (
+              {/* No Articles State - Only show if not generating and no articles */}
+              {!isGeneratingNews && !isCategoryGenerating && !isLoadingNews && newsItems.length === 0 && query && (
                 <div className="text-center py-20">
                   <FaNewspaper className="text-gray-400 text-4xl mx-auto mb-4" />
                   <h3 className="text-xl font-semibold text-gray-700 mb-2">No articles found</h3>
@@ -493,7 +499,7 @@ function NewsResultsPage({ searchHistory, onSearch, onDeletePage, userCategories
               )}
               
               {/* Select Topic State */}
-              {!isGeneratingNews && !isLoadingNews && !query && (
+              {!isGeneratingNews && !isCategoryGenerating && !isLoadingNews && !query && (
                 <div className="text-center py-20">
                   <FaNewspaper className="text-gray-400 text-4xl mx-auto mb-4" />
                   <h3 className="text-xl font-semibold text-gray-700 mb-2">Select a topic</h3>

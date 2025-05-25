@@ -1,5 +1,5 @@
 // Get base URL from environment variable or fallback to localhost
-const API_BASE_URL = import.meta.env.VITE_PUBLIC_URL || 'http://localhost:5000';
+const API_BASE_URL = import.meta.env.VITE_PUBLIC_URL || 'http://localhost:8080';
 
 class ApiService {
   constructor() {

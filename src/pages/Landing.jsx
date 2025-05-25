@@ -3,6 +3,11 @@ import { FaGoogle, FaChevronLeft, FaChevronRight, FaNewspaper, FaSearch, FaBolt 
 import { useAuth } from '../context/AuthContext';
 import { gsap } from 'gsap';
 
+// Import your local images
+import ss1 from '../assets/images/ss1.png';
+import ss2 from '../assets/images/ss2.png';
+import ss3 from '../assets/images/ss3.png';
+
 function Landing() {
   const { login, isAuthLoading } = useAuth();
   const [activeSlideIndex, setActiveSlideIndex] = useState(0);
@@ -19,25 +24,19 @@ function Landing() {
   const featuresGridRef = useRef(null);
   const benefitsSectionRef = useRef(null);
 
-  // Demo content for slideshow
+  // Demo content for slideshow with local images - no text overlays
   const demoScreenshots = [
     {
-      id: 'search-demo',
-      title: "Intelligent News Discovery",
-      image: "https://picsum.photos/600/400?random=1",
-      description: "Find relevant articles across multiple trusted sources"
+      id: 'screenshot-1',
+      image: ss1
     },
     {
-      id: 'summary-demo',
-      title: "AI-Enhanced Summaries",
-      image: "https://picsum.photos/600/400?random=2", 
-      description: "Get comprehensive viewpoints from different perspectives"
+      id: 'screenshot-2',
+      image: ss2
     },
     {
-      id: 'realtime-demo',
-      title: "Live News Updates",
-      image: "https://picsum.photos/600/400?random=3",
-      description: "Stay current with breaking news developments"
+      id: 'screenshot-3',
+      image: ss3
     }
   ];
 
@@ -203,7 +202,7 @@ function Landing() {
           </div>
         </div>
 
-        {/* Interactive slideshow */}
+        {/* Interactive slideshow - Clean images only */}
         <div ref={rightContentRef} className="w-1/2 flex items-center justify-center p-8 bg-gray-50">
           <div ref={slideshowContainerRef} className="relative w-full max-w-2xl">
             <div className="relative bg-white rounded-2xl shadow-2xl overflow-hidden">
@@ -217,17 +216,9 @@ function Landing() {
                   >
                     <img
                       src={screenshot.image}
-                      alt={screenshot.title}
+                      alt={`Screenshot ${slideIndex + 1}`}
                       className="w-full h-full object-cover"
                     />
-                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-6">
-                      <h3 className="text-white text-xl font-semibold mb-2">
-                        {screenshot.title}
-                      </h3>
-                      <p className="text-white/90 text-sm">
-                        {screenshot.description}
-                      </p>
-                    </div>
                   </div>
                 ))}
               </div>

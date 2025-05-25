@@ -36,6 +36,8 @@ function NewsResultsPage({ searchHistory, onSearch, onDeletePage, userCategories
   const gridRef = useRef(null);
   const modalRef = useRef(null);
   const rightSideRef = useRef(null);
+  const sidebarRef = useRef(null);
+  const followingListRef = useRef(null);
 
   // Load news when query changes or userCategories update
   useEffect(() => {
@@ -83,6 +85,103 @@ function NewsResultsPage({ searchHistory, onSearch, onDeletePage, userCategories
     }
   }, [query]);
 
+  // GSAP optimization for following list
+  useEffect(() => {
+    if (followingListRef.current && searchHistory.length > 0) {
+      const ctx = gsap.context(() => {
+        const listItems = followingListRef.current.children;
+        
+        // Animate list items with stagger
+        gsap.fromTo(listItems, 
+          { 
+            opacity: 0, 
+            x: -30, 
+            scale: 0.95 
+          },
+          { 
+            opacity: 1, 
+            x: 0, 
+            scale: 1,
+            duration: 0.5, 
+            ease: "power2.out", 
+            stagger: 0.08
+          }
+        );
+
+        // Add hover animations for each item
+        Array.from(listItems).forEach((item, index) => {
+          const button = item.querySelector('.following-item-button');
+          const deleteBtn = item.querySelector('.delete-button');
+          
+          if (button) {
+            button.addEventListener('mouseenter', () => {
+              gsap.to(item, {
+                x: 5,
+                scale: 1.02,
+                duration: 0.2,
+                ease: "power2.out"
+              });
+            });
+            
+            button.addEventListener('mouseleave', () => {
+              gsap.to(item, {
+                x: 0,
+                scale: 1,
+                duration: 0.2,
+                ease: "power2.out"
+              });
+            });
+          }
+
+          if (deleteBtn) {
+            deleteBtn.addEventListener('mouseenter', () => {
+              gsap.to(deleteBtn, {
+                scale: 1.1,
+                rotation: 5,
+                duration: 0.2,
+                ease: "power2.out"
+              });
+            });
+            
+            deleteBtn.addEventListener('mouseleave', () => {
+              gsap.to(deleteBtn, {
+                scale: 1,
+                rotation: 0,
+                duration: 0.2,
+                ease: "power2.out"
+              });
+            });
+          }
+        });
+
+      }, followingListRef);
+
+      return () => ctx.revert(); // Cleanup
+    }
+  }, [searchHistory]);
+
+  // GSAP optimization for news cards
+  useEffect(() => {
+    if (newsItems.length > 0 && gridRef.current && headerRef.current) {
+      const ctx = gsap.context(() => {
+        const cards = gridRef.current.children;
+        const tl = gsap.timeline();
+        
+        tl.fromTo(headerRef.current, 
+          { opacity: 0, y: 20 },
+          { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" }
+        )
+        .fromTo(cards, 
+          { opacity: 0, y: 30 },
+          { opacity: 1, y: 0, duration: 0.6, ease: "power2.out", stagger: 0.1 }, 
+          "-=0.3"
+        );
+      }, gridRef);
+
+      return () => ctx.revert(); // Cleanup
+    }
+  }, [newsItems]);
+
   const handleCardClick = (newsItem) => {
     setSelectedCard(newsItem);
     document.body.style.overflow = 'hidden';
@@ -128,43 +227,27 @@ function NewsResultsPage({ searchHistory, onSearch, onDeletePage, userCategories
     setShowAddModal(false);
   };
 
-  useEffect(() => {
-    if (newsItems.length > 0 && gridRef.current && headerRef.current) {
-      const cards = gridRef.current.children;
-      const tl = gsap.timeline();
-      
-      tl.fromTo(headerRef.current, 
-        { opacity: 0, y: 20 },
-        { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" }
-      )
-      .fromTo(cards, 
-        { opacity: 0, y: 30 },
-        { opacity: 1, y: 0, duration: 0.6, ease: "power2.out", stagger: 0.1 }, 
-        "-=0.3"
-      );
-    }
-  }, [newsItems]);
-
   return (
     <div className="min-h-screen bg-gray-100">
-      {/* Navbar */}
+      {/* Enhanced Navbar */}
       <nav className="bg-white border-b border-gray-200 sticky top-0 z-40 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4">
+        <div className="max-w-7xl mx-auto px-6">
           <div className="flex items-center justify-between h-16">
-            <div className="flex items-center space-x-4">
-              <button className="p-2 rounded-lg hover:bg-gray-100">
-                <FaBars className="text-gray-700" />
-              </button>
-              <div className="font-bold text-xl text-gray-900">
+            {/* Logo Section - Left */}
+            <div className="flex items-center">
+              <div className="font-bold text-2xl text-gray-900 cursor-pointer hover:text-blue-600 transition-colors duration-200">
                 News<span className="text-blue-600">Genius</span>
               </div>
             </div>
-            <div className="flex items-center space-x-2">
-              <button onClick={() => navigate('/')} className="p-2 rounded-lg hover:bg-gray-100">
-                <FaHome className="text-gray-700" />
-              </button>
-              <button className="p-2 rounded-lg hover:bg-gray-100">
-                <FaUser className="text-gray-700" />
+            
+            {/* Home Button - Right */}
+            <div className="flex items-center">
+              <button 
+                onClick={() => navigate('/')} 
+                className="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all duration-200 hover:scale-105 shadow-sm"
+              >
+                <FaHome className="text-sm" />
+                <span className="font-medium">Home</span>
               </button>
             </div>
           </div>
@@ -172,8 +255,8 @@ function NewsResultsPage({ searchHistory, onSearch, onDeletePage, userCategories
       </nav>
       
       <div className="flex h-[calc(100vh-64px)]">
-        {/* Sidebar */}
-        <div className="w-80 bg-white shadow-lg border-r border-gray-200 flex flex-col">
+        {/* Enhanced Sidebar with GSAP */}
+        <div ref={sidebarRef} className="w-80 bg-white shadow-lg border-r border-gray-200 flex flex-col">
           <div className="p-6 border-b border-gray-200">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center">
@@ -192,12 +275,12 @@ function NewsResultsPage({ searchHistory, onSearch, onDeletePage, userCategories
                 }
               }}
               disabled={isGeneratingNews}
-              className={`w-full flex items-center justify-center px-4 py-3 rounded-lg font-medium ${
+              className={`w-full flex items-center justify-center px-4 py-3 rounded-lg font-medium transition-all duration-300 ${
                 searchHistory.length >= 10
                   ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
                   : isGeneratingNews
                   ? 'bg-blue-400 text-white cursor-not-allowed'
-                  : 'bg-blue-600 hover:bg-blue-700 text-white'
+                  : 'bg-blue-600 hover:bg-blue-700 text-white hover:scale-105 shadow-sm'
               }`}
             >
               {isGeneratingNews ? (
@@ -219,27 +302,27 @@ function NewsResultsPage({ searchHistory, onSearch, onDeletePage, userCategories
             </button>
           </div>
           
+          {/* Enhanced Following List with GSAP */}
           <div className="flex-1 overflow-y-auto p-6">
             {searchHistory.length > 0 ? (
-              <div className="space-y-3">
+              <div ref={followingListRef} className="space-y-3">
                 {searchHistory.map((item, index) => {
-                  // Find if this category is generating
                   const category = userCategories.find(cat => cat.prompt === item);
                   const isGenerating = category?.isGenerating || false;
                   
                   return (
                     <div
                       key={index}
-                      className={`w-full p-4 rounded-lg flex items-center group ${
+                      className={`w-full p-4 rounded-lg flex items-center group transition-all duration-300 ${
                         item === currentQuery 
-                          ? 'bg-blue-100 border border-blue-300 text-blue-800' 
-                          : 'bg-gray-50 hover:bg-gray-100 text-gray-700'
+                          ? 'bg-blue-100 border border-blue-300 text-blue-800 shadow-md' 
+                          : 'bg-gray-50 hover:bg-gray-100 text-gray-700 hover:shadow-md'
                       }`}
                     >
                       <button
                         onClick={() => !isGenerating && handleFollowingPageClick(item)}
                         disabled={isGenerating}
-                        className="flex items-center flex-1 min-w-0"
+                        className="following-item-button flex items-center flex-1 min-w-0"
                       >
                         <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3">
                           {isGenerating ? (
@@ -255,25 +338,25 @@ function NewsResultsPage({ searchHistory, onSearch, onDeletePage, userCategories
                           </span>
                         </div>
                       </button>
+                      
                       <button
-  onClick={(e) => {
-    e.stopPropagation();
-    e.preventDefault();
-    console.log('Delete button clicked for:', item);
-    
-    // Show confirmation dialog
-    if (window.confirm(`Are you sure you want to remove "${item}" from your following list?`)) {
-      handleDeletePage(item);
-    }
-  }}
-  disabled={isGenerating}
-  className={`ml-2 p-2 rounded-lg hover:bg-red-100 text-red-600 transition-all duration-200 ${
-    isGenerating ? 'opacity-30 cursor-not-allowed' : 'opacity-0 group-hover:opacity-100'
-  }`}
-  title="Remove this page"
->
-  <FaTrash className="text-sm" />
-</button>
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          e.preventDefault();
+                          console.log('Delete button clicked for:', item);
+                          
+                          if (window.confirm(`Are you sure you want to remove "${item}" from your following list?`)) {
+                            handleDeletePage(item);
+                          }
+                        }}
+                        disabled={isGenerating}
+                        className={`delete-button ml-2 p-2 rounded-lg hover:bg-red-100 text-red-600 transition-all duration-200 ${
+                          isGenerating ? 'opacity-30 cursor-not-allowed' : 'opacity-0 group-hover:opacity-100'
+                        }`}
+                        title="Remove this page"
+                      >
+                        <FaTrash className="text-sm" />
+                      </button>
                     </div>
                   );
                 })}
@@ -289,7 +372,7 @@ function NewsResultsPage({ searchHistory, onSearch, onDeletePage, userCategories
           
           <div className="p-6 border-t border-gray-200 bg-gray-50">
             <div className="text-center">
-              <p className="text-sm text-gray-500">NewsGenius v1.0</p>
+              <p className="text-sm text-gray-500">NewsGenius v0.5 beta</p>
             </div>
           </div>
         </div>
@@ -332,59 +415,70 @@ function NewsResultsPage({ searchHistory, onSearch, onDeletePage, userCategories
                 </div>
               )}
               
-              {/* Articles Display */}
+              {/* Enhanced Vertical Articles Display - NEW LAYOUT */}
               {!isGeneratingNews && !isLoadingNews && newsItems.length > 0 && (
-                <div ref={gridRef} className="max-w-4xl mx-auto space-y-6">
+                <div ref={gridRef} className="max-w-3xl mx-auto space-y-8">
                   {newsItems.map((item, index) => (
                     <div key={item.id || index} className="gsap-fade-in">
                       <div 
                         className="bg-white rounded-lg shadow-md hover:shadow-lg cursor-pointer overflow-hidden transition-all duration-300"
                         onClick={() => handleCardClick(item)}
                       >
-                        <div className="flex">
+                        <div className="flex h-56">
                           {item.imageUrl && (
-                            <div className="w-64 h-40 flex-shrink-0">
+                            <div className="w-72 flex-shrink-0">
                               <img
                                 src={item.imageUrl}
                                 alt={item.mainTitle}
                                 className="w-full h-full object-cover"
                                 onError={(e) => { 
                                   e.target.onerror = null; 
-                                  e.target.src = 'https://placehold.co/256x160/cccccc/333333?text=No+Image'; 
+                                  e.target.src = 'https://placehold.co/288x224/cccccc/333333?text=No+Image'; 
                                 }}
                               />
                             </div>
                           )}
-                          <div className="flex-1 p-6">
-                            <div className="flex items-center justify-between mb-2">
-                              <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-medium">
-                                {item.mainSource}
-                              </span>
-                              <span className="text-gray-500 text-sm">
-                                {item.publishedAt ? new Date(item.publishedAt).toLocaleDateString() : 'Recent'}
-                              </span>
+                          <div className="flex-1 p-8 flex flex-col justify-between">
+                            <div>
+                              <div className="flex items-center justify-between mb-3">
+                                <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs font-medium">
+                                  {item.mainSource}
+                                </span>
+                                <span className="text-gray-500 text-sm flex items-center">
+                                  <FaCalendarAlt className="mr-2" />
+                                  {item.publishedAt ? new Date(item.publishedAt).toLocaleDateString() : 'Recent'}
+                                </span>
+                              </div>
+                              
+                              <h3 className="font-bold text-xl mb-4 text-gray-900 leading-tight">
+                                {item.mainTitle}
+                              </h3>
+                              
+                              <p className="text-gray-600 text-sm mb-4 leading-relaxed line-clamp-4">
+                                {item.summaries && item.summaries[0] ? 
+                                  item.summaries[0].summary :
+                                  'No summary available'
+                                }
+                              </p>
                             </div>
                             
-                            <h3 className="font-bold text-lg mb-2 text-gray-900">
-                              {item.mainTitle}
-                            </h3>
-                            
-                            <p className="text-gray-600 text-sm mb-3">
-                              {item.summaries && item.summaries[0] ? 
-                                item.summaries[0].summary.substring(0, 150) + '...' :
-                                'No summary available'
-                              }
-                            </p>
-                            
-                            <div className="flex items-center justify-between">
-                              <span className="text-blue-600 text-sm font-medium">
-                                Read more →
+                            <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                              <span className="text-blue-600 text-sm font-medium flex items-center">
+                                Read more 
+                                <FaExternalLinkAlt className="ml-2 text-xs" />
                               </span>
-                              {item.hasRealImage && (
-                                <span className="text-green-600 text-xs font-medium">
-                                  ✅ Real Image
-                                </span>
-                              )}
+                              <div className="flex items-center space-x-4">
+                                {item.summaries && (
+                                  <span className="text-gray-400 text-xs">
+                                    {item.summaries.length} sources
+                                  </span>
+                                )}
+                                {item.hasRealImage && (
+                                  <span className="text-green-600 text-xs font-medium">
+                                    ✅ Real Image
+                                  </span>
+                                )}
+                              </div>
                             </div>
                           </div>
                         </div>

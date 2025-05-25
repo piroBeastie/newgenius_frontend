@@ -1,137 +1,180 @@
 import { useRef, useEffect } from 'react';
-import { FaTimes, FaBookmark } from 'react-icons/fa';
+import { FaTimes, FaBookmark, FaChevronRight } from 'react-icons/fa';
 import { gsap } from 'gsap';
 import { useNavigate } from 'react-router-dom';
-import newsArticles from '../data/newsDatabase';
 
 function SideDrawer({ isOpen, searchHistory, onHistoryItemClick }) {
-  const drawerRef = useRef(null);
-  const backdropRef = useRef(null);
-  const contentRef = useRef(null);
+  const drawerContainerRef = useRef(null);
+  const overlayRef = useRef(null);
+  const panelRef = useRef(null);
+  const navigationListRef = useRef(null);
+  const headerSectionRef = useRef(null);
+  const footerSectionRef = useRef(null);
   const navigate = useNavigate();
 
-  const handleBackdropClick = (e) => {
-    if (e.target === e.currentTarget) {
+  const handleOverlayInteraction = (event) => {
+    if (event.target === event.currentTarget) {
       onHistoryItemClick();
     }
   };
 
-  const searchMockData = (searchTerm) => {
-    if (!searchTerm) return [];
-    
-    const lowercaseQuery = searchTerm.toLowerCase();
-    
-    return newsArticles.filter(article => 
-      article.mainTitle.toLowerCase().includes(lowercaseQuery) ||
-      article.summaries.some(summary => 
-        summary.summary.toLowerCase().includes(lowercaseQuery)
-      )
-    );
-  };
-
-  const handleFollowingPageClick = (item) => {
-    navigate(`/news?q=${encodeURIComponent(item)}`);
+  const navigateToSelectedPage = (selectedItem) => {
+    navigate(`/news?q=${encodeURIComponent(selectedItem)}`);
     onHistoryItemClick();
   };
 
+  // Drawer animation management
   useEffect(() => {
-    if (isOpen) {
-      // Show and animate in
-      gsap.set(backdropRef.current, { display: 'block', opacity: 0 });
-      gsap.set(contentRef.current, { x: '-100%' });
-      
-      const timeline = gsap.timeline();
-      timeline
-        .to(backdropRef.current, {
-          opacity: 1,
-          duration: 0.3,
-          ease: "power2.out"
-        })
-        .to(contentRef.current, {
-          x: '0%',
-          duration: 0.3,
-          ease: "power2.out"
-        }, "-=0.1");
-        
-    } else {
-      // Animate out and hide
-      const timeline = gsap.timeline();
-      timeline
-        .to(contentRef.current, {
-          x: '-100%',
-          duration: 0.3,
-          ease: "power2.in"
-        })
-        .to(backdropRef.current, {
+    const animationContext = gsap.context(() => {
+      if (isOpen) {
+        // Opening animation sequence
+        gsap.set(overlayRef.current, { 
+          display: 'block', 
           opacity: 0,
-          duration: 0.2,
-          ease: "power2.in",
-          onComplete: () => {
-            gsap.set(backdropRef.current, { display: 'none' });
-          }
-        }, "-=0.1");
-    }
+          backdropFilter: 'blur(0px)',
+          webkitBackdropFilter: 'blur(0px)',
+          willChange: 'opacity, backdrop-filter'
+        });
+        gsap.set(panelRef.current, { 
+          x: '-100%',
+          willChange: 'transform'
+        });
+        
+        const openTimeline = gsap.timeline({
+          defaults: { ease: "power2.out" }
+        });
+        
+        openTimeline
+          .to(overlayRef.current, {
+            opacity: 1,
+            backdropFilter: 'blur(4px)',
+            webkitBackdropFilter: 'blur(4px)',
+            duration: 0.3
+          })
+          .to(panelRef.current, {
+            x: '0%',
+            duration: 0.4,
+            ease: "power2.out"
+          }, "-=0.2")
+          .fromTo([headerSectionRef.current, navigationListRef.current, footerSectionRef.current], {
+            opacity: 0,
+            x: -20
+          }, {
+            opacity: 1,
+            x: 0,
+            duration: 0.3,
+            stagger: 0.1
+          }, "-=0.2")
+          .set([overlayRef.current, panelRef.current], {
+            willChange: 'auto'
+          });
+          
+      } else {
+        // Closing animation sequence
+        gsap.set([overlayRef.current, panelRef.current], {
+          willChange: 'transform, opacity, backdrop-filter'
+        });
+        
+        const closeTimeline = gsap.timeline();
+        
+        closeTimeline
+          .to([headerSectionRef.current, navigationListRef.current, footerSectionRef.current], {
+            opacity: 0,
+            x: -30,
+            duration: 0.3,
+            stagger: 0.05,
+            ease: "power2.in"
+          })
+          .to(panelRef.current, {
+            x: '-100%',
+            duration: 0.8,
+            ease: "power2.inOut"
+          }, "-=0.1")
+          .to(overlayRef.current, {
+            opacity: 0,
+            backdropFilter: 'blur(0px)',
+            webkitBackdropFilter: 'blur(0px)',
+            duration: 0.3,
+            ease: "power2.in",
+            onComplete: () => {
+              gsap.set(overlayRef.current, { 
+                display: 'none',
+                willChange: 'auto'
+              });
+              gsap.set(panelRef.current, {
+                willChange: 'auto'
+              });
+            }
+          }, "-=0.2");
+      }
+    }, drawerContainerRef);
+
+    return () => animationContext.revert();
   }, [isOpen]);
 
   return (
-    <div ref={drawerRef}>
+    <div ref={drawerContainerRef}>
+      {/* Background overlay with blur effect */}
       <div 
-        ref={backdropRef}
+        ref={overlayRef}
         className="fixed inset-0 z-40"
         style={{ 
           backgroundColor: 'rgba(17, 24, 39, 0.15)',
-          backdropFilter: 'blur(4px)',
+          backdropFilter: 'blur(0px)',
+          webkitBackdropFilter: 'blur(0px)',
           display: 'none'
         }}
-        onClick={handleBackdropClick}
+        onClick={handleOverlayInteraction}
       />
       
+      {/* Main drawer panel */}
       <div 
-        ref={contentRef}
-        className="fixed top-0 left-0 h-full w-80 bg-white shadow-xl z-50"
+        ref={panelRef}
+        className="fixed top-0 left-0 h-full w-80 bg-white shadow-2xl z-50 border-r-2 border-gray-300"
         style={{ transform: 'translateX(-100%)' }}
       >
         <div className="flex flex-col h-full">
-          <div className="flex items-center justify-between p-6 border-b border-gray-200">
+          {/* Header section */}
+          <div ref={headerSectionRef} className="flex items-center justify-between p-6 border-b border-gray-200 bg-blue-50">
             <div className="flex items-center">
               <FaBookmark className="text-blue-600 mr-2" />
               <h2 className="text-xl font-bold text-gray-900">Following Pages</h2>
             </div>
             <div className="flex items-center space-x-2">
-              <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+              <span className="text-sm text-gray-500 bg-white px-2 py-1 rounded-full shadow-sm">
                 {searchHistory.length}/10
               </span>
               <button 
                 onClick={onHistoryItemClick}
-                className="p-2 rounded-lg hover:bg-gray-100 transition-colors duration-200"
+                className="p-2 rounded-lg hover:bg-blue-100 transition-colors duration-150"
+                aria-label="Close drawer"
               >
                 <FaTimes className="text-gray-600" />
               </button>
             </div>
           </div>
           
+          {/* Navigation content */}
           <div className="flex-1 overflow-y-auto p-6">
             {searchHistory.length > 0 ? (
-              <div className="space-y-2">
-                {searchHistory.map((item, index) => (
+              <div ref={navigationListRef} className="space-y-2">
+                {searchHistory.map((pageItem, itemIndex) => (
                   <button
-                    key={index}
-                    onClick={() => handleFollowingPageClick(item)}
-                    className="w-full text-left p-4 rounded-lg transition-all duration-200 flex items-center group hover:bg-gray-100 hover:shadow-sm"
+                    key={itemIndex}
+                    onClick={() => navigateToSelectedPage(pageItem)}
+                    className="w-full text-left p-4 rounded-lg transition-colors duration-150 flex items-center group hover:bg-blue-50 border border-gray-100"
                   >
                     <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
-                      <span className="text-blue-600 font-bold text-xs">{index + 1}</span>
+                      <span className="text-blue-600 font-bold text-xs">{itemIndex + 1}</span>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <span className="truncate block font-medium text-gray-700">{item}</span>
+                      <span className="truncate block font-medium text-gray-700">{pageItem}</span>
                       <span className="text-xs text-gray-500">
-                        {searchMockData(item).length} articles
+                        Real news from backend
                       </span>
                     </div>
-                    <div className="ml-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                      <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
+                    <div className="ml-2 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
+                      <FaChevronRight className="w-4 h-4 text-gray-400" />
                     </div>
                   </button>
                 ))}
@@ -145,10 +188,11 @@ function SideDrawer({ isOpen, searchHistory, onHistoryItemClick }) {
             )}
           </div>
           
-          <div className="p-6 border-t border-gray-200 bg-gray-50">
+          {/* Footer section */}
+          <div ref={footerSectionRef} className="p-6 border-t border-gray-200 bg-gray-50">
             <div className="text-center">
               <p className="text-sm text-gray-500 mb-2">
-                NewsGenius v1.0
+                NewsGenius v0.5 beta
               </p>
               <p className="text-xs text-gray-400">
                 Following up to 10 pages

@@ -6,7 +6,6 @@ import ApiService from '../services/api';
 import { 
   FaTimes, 
   FaExternalLinkAlt, 
-  FaCalendarAlt, 
   FaNewspaper, 
   FaHome, 
   FaBookmark, 
@@ -415,7 +414,7 @@ function NewsResultsPage({ searchHistory, onSearch, onDeletePage, userCategories
                 </div>
               )}
               
-              {/* Enhanced Vertical Articles Display - NEW LAYOUT */}
+              {/* Enhanced Vertical Articles Display*/}
               {!isGeneratingNews && !isLoadingNews && newsItems.length > 0 && (
                 <div ref={gridRef} className="max-w-3xl mx-auto space-y-8">
                   {newsItems.map((item, index) => (
@@ -443,10 +442,6 @@ function NewsResultsPage({ searchHistory, onSearch, onDeletePage, userCategories
                               <div className="flex items-center justify-between mb-3">
                                 <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs font-medium">
                                   {item.mainSource}
-                                </span>
-                                <span className="text-gray-500 text-sm flex items-center">
-                                  <FaCalendarAlt className="mr-2" />
-                                  {item.publishedAt ? new Date(item.publishedAt).toLocaleDateString() : 'Recent'}
                                 </span>
                               </div>
                               

@@ -159,7 +159,9 @@ function Landing() {
           <div className="w-full max-w-md mx-auto">
             {/* Brand identity */}
             <div ref={titleElementRef} className="mb-8 text-center">
-              <h1 className="text-5xl font-bold text-gray-900 mb-4">NewsGenius</h1>
+              <h1 className="text-5xl font-bold text-gray-900 mb-4">
+                News<span className="text-blue-600">Genius</span>
+              </h1>
               <p ref={subtitleElementRef} className="text-xl text-gray-600">AI-powered news intelligence</p>
             </div>
 

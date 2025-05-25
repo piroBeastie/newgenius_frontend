@@ -13,6 +13,12 @@ Modern React frontend for NewsGenius - an intelligent news aggregation platform 
 
 **🔗 [Visit NewsGenius Live](https://newgenius-frontend.vercel.app/)**
 
+## 🌕 Backend Repo
+
+**🔗 [newsgenius_backend](https://github.com/piroBeastie/newsgenius_backend)**
+
+**🔗 [Visit NewsGenius Live](https://newgenius-frontend.vercel.app/)**
+
 ## ✨ Features
 
 ### 🎯 Core UI Features

@@ -37,10 +37,10 @@ function AppContent() {
   ];
   
   const sampleResults = [
-    "Result 1", 
-    "Result 2", 
-    "Result 3", 
-    "Result 4"
+    "Russia launches Massive Attack on Ukraine", 
+    "Melbourne Shopping Centre Attack", 
+    "North Korea Detains Officials Over Naval Accident", 
+    "Trump Administraton Immigration Actions"
   ];
 
   const handleUserSearch = async (searchQuery) => {

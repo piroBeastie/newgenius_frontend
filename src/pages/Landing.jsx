@@ -150,11 +150,11 @@ function Landing() {
   };
 
   return (
-    <div ref={landingContainerRef} className="min-h-screen bg-white">
+    <div ref={landingContainerRef} className="min-h-screen bg-gradient-to-br from-blue-50/20 via-white to-blue-50/10">
       {/* Main hero section */}
       <div className="h-screen flex">
-        {/* Authentication section */}
-        <div ref={leftContentRef} className="w-1/2 flex flex-col justify-center px-8 lg:px-16">
+        {/* Authentication section - Just add subtle background */}
+        <div ref={leftContentRef} className="w-1/2 flex flex-col justify-center px-8 lg:px-16 bg-blue-50/10">
           <div className="w-full max-w-md mx-auto">
             {/* Brand identity */}
             <div ref={titleElementRef} className="mb-8 text-center">
